@@ -17,39 +17,48 @@ angular.module('starter.controllers', [])
 
 //Controlador Para registro de usuario
 .controller("registroCtrl",function($scope){
+
+	$scope.uid = "";
+
 	$scope.obtener = function(user){
-	firebase.auth().createUserWithEmailAndPassword(user.email, user.contra).then(function a(y){
-		swal("Se ha registrado correctamente")
-			firebase.database().ref("usuario").push()({
-				correo: user.email
-				
-	})
-	firebase.out().signout().then(function(){
-		// sign-out successful
+		firebase.auth().createUserWithEmailAndPassword(user.email, user.contra).then(function a (y){
+			swal("Se ha registardo correctamente");
+			$scope.uid = y.user.uid;
+			firebase.database().ref("/usuario").child($scope.uid).set({
+				correo: user.email,
+				nombre: user.name,
+				uid: $scope.uid
+			})
+		})
+
+		firebase.auth().signOut().then(function(){		
 		}).catch(function(error){
-		// An error.
-		}); // hasta aqui
-		}).catch(function(error) {
-		// Handle Errors here.
-		var errorCode = error.code;
-		var errorMessage = error.message;
-		// ...
-		});
-	}
+			var mensaje = error.message;
+			console.log(mensaje);
+		})
+
+		$scope.user = {};
+		$state.go("login")
+	}		
 })
 
 //Controlador vista inicio
-.controller("loginCtrl",function($scope, $ionicPopover){
-	//conectar app con facebook
-	$window.fbAsyncInit = function() {
-		FB.init({ 
-		appId: '657057955159871',
-		status: true, 
-		cookie: true, 
-		xfbml: true,
-		version: 'v2.4'
-	});
-};
+.controller("loginCtrl",function($scope, $ionicPopover, $state){
+	firebase.auth().signOut().then(function(){		
+	}).catch(function(error){
+		var mensaje = error.message;
+		console.log(mensaje);
+	})
+
+	$scope.Inicio = function(userL){
+		firebase.auth().signInWithEmailAndPassword(userL.email,userL.password).then(function b(x){
+			swal("Se ha iniciado sesión correctamente");
+			$state.go("tab.dash");
+		}).catch(function(error){
+			var mensaje = error.message;
+			console.log(mensaje);
+		})
+	}
 
 //popover
 	// .fromTemplate() method
@@ -220,3 +229,4 @@ angular.module('starter.controllers', [])
 		enableFriends: true
 	};
 });
+
